@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FaberHealth - NFC & QR Emergency Card</title>
+  <!-- Libreria per generare il QR Code -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <style>
+    :root {
+      --bg-color: #0b131a;
+      --card-bg: #111b24;
+      --border-glow: #00ffcc55;
+      --primary-cyan: #00ffcc;
+      --text-main: #ffffff;
+      --text-muted: #8b9bb4;
+      --accent-red: #ff4d4d;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background-color: var(--bg-color);
+      color: var(--text-main);
+      margin: 0;
+      padding: 15px;
+    }
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+    }
+    .card-box {
+      background: var(--card-bg);
+      border: 2px solid var(--border-glow);
+      border-radius: 16px;
+      padding: 20px;
+      box-shadow: 0 0 25px rgba(0, 255, 204, 0.1);
+      margin-bottom: 20px;
+    }
+    .header-flex {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      border-bottom: 1px solid #22303d;
+      padding-bottom: 15px;
+      margin-bottom: 15px;
+    }
+    .logo-area {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .fh-badge {
+      background: #00ffcc;
+      color: #0b131a;
+      font-weight: bold;
+      font-size: 14px;
+      padding: 8px 12px;
+      border-radius: 8px;
+    }
+    .brand-title h1 {
+      margin: 0;
+      font-size: 20px;
+      color: var(--text-main);
+      letter-spacing: 0.5px;
+    }
+    .brand-title p {
+      margin: 2px 0 0;
+      font-size: 12px;
+      color: var(--primary-cyan);
+    }
+    /* Form Styles */
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+    .form-group {
+      margin-bottom: 12px;
+    }
+    .form-group.full {
+      grid-column: span 2;
+    }
+    .form-group label {
+      display: block;
+      margin-bottom: 4px;
+      font-size: 11px;
+      text-transform: uppercase;
+      color: var(--primary-cyan);
+      letter-spacing: 0.5px;
+      font-weight: bold;
+    }
+    .form-group input, .form-group select, .form-group textarea {
+      width: 100%;
+      padding: 10px;
+      background: #0b131a;
+      border: 1px solid #22303d;
+      border-radius: 8px;
+      color: white;
+      font-size: 14px;
+      box-sizing: border-box;
+    }
+    .form-group input:focus, .form-group textarea:focus {
+      border-color: var(--primary-cyan);
+      outline: none;
+    }
+    .form-group textarea {
+      resize: vertical;
+      height: 60px;
+    }
+    .checkbox-container {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      font-size: 12px;
+      color: var(--text-muted);
+      margin: 15px 0;
+      grid-column: span 2;
+    }
+    .checkbox-container input {
+      width: 18px;
+      height: 18px;
+      margin-top: 2px;
+    }
+    /* Buttons */
+    .btn {
+      width: 100%;
+      padding: 12px;
+      border: none;
+      border-radius: 8px;
+      font-size: 15px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .btn-primary {
+      background: var(--primary-cyan);
+      color: #0b131a;
+    }
+    .btn-primary:hover {
+      background: #00ddb3;
+    }
+    .btn-danger {
+      background: transparent;
+      border: 1px solid var(--accent-red);
+      color: var(--accent-red);
+      margin-top: 10px;
+    }
+    .btn-secondary {
+      background: #22303d;
+      color: white;
+      margin-top: 10px;
+    }
+    /* Display Card Styles (Stile Immagine) */
+    .display-header-top {
+      font-size: 11px;
+      text-transform: uppercase;
+      color: var(--primary-cyan);
+      letter-spacing: 1px;
+      margin-bottom: 2px;
+    }
+    .display-name {
+      font-size: 22px;
+      font-weight: bold;
+      color: white;
+      margin-bottom: 15px;
+      word-break: break-all;
+    }
+    .grid-info {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 15px;
+      align-items: center;
+    }
+    .info-block p {
+      margin: 8px 0;
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+    .info-block strong {
+      color: white;
+      display: block;
+      font-size: 14px;
+    }
+    .blood-box {
+      font-size: 20px;
+      font-weight: bold;
+      color: var(--accent-red);
+      background: #1a0f0f;
+      padding: 5px 10px;
+      border-radius: 6px;
+      display: inline-block;
+      border: 1px solid #ff4d4d44;
+    }
+    #qrcode-box {
+      background: white;
+      padding: 8px;
+      border-radius: 8px;
+      display: inline-block;
+      margin-top: 10px;
+    }
+    .qr-column {
+      text-align: center;
+    }
+    .qr-label {
+      font-size: 10px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      margin-top: 5px;
+      letter-spacing: 0.5px;
+    }
+    .privacy-footer {
+      font-size: 11px;
+      color: var(--text-muted);
+      text-align: center;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    
+    <!-- SEZIONE FORM DI REGISTRAZIONE / SETUP -->
+    <section id="setup-section" class="card-box">
+      <div class="header-flex">
+        <div class="logo-area">
+          <div class="fh-badge">FH</div>
+          <div class="brand-title">
+            <h1>FaberHealth</h1>
+            <p>NFC &amp; QR Emergency Card</p>
+          </div>
+        </div>
+      </div>
+
+      <form id="emergency-form">
+        <div class="form-grid">
+          <div class="form-group full">
+            <label>Nome e Cognome:</label>
+            <input type="text" id="name" required placeholder="Es. Mario Rossi">
+          </div>
+
+          <div class="form-group">
+            <label>Gruppo Sanguigno:</label>
+            <select id="bloodType">
+              <option value="A+">A+</option><option value="A-">A-</option>
+              <option value="B+">B+</option><option value="B-">B-</option>
+              <option value="O+">O+</option><option value="O-">O-</option>
+              <option value="AB+">AB+</option><option value="AB-">AB-</option>
+              <option value="Non indicato">Non indicato</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Contatto d'Emergenza (ICE):</label>
+            <input type="tel" id="iceContact" required placeholder="+39 333 1234567">
+          </div>
+
+          <div class="form-group full">
+            <label>Patologie / Condizioni Critiche:</label>
+            <textarea id="conditions" placeholder="Es. Diabete Tipo 1, Pacemaker"></textarea>
+          </div>
+
+          <div class="form-group">
+            <label>Allergie:</label>
+            <input type="text" id="allergies" placeholder="Es. Penicillina, Lattice">
+          </div>
+
+          <div class="form-group">
+            <label>Farmaci / Terapie:</label>
+            <input type="text" id="medications" placeholder="Es. Insulina, Cardirene">
+          </div>
+
+          <div class="form-group full">
+            <label>Interventi / Note Chirurgiche:</label>
+            <input type="text" id="surgeries" placeholder="Es. Bypass gastrico 2022">
+          </div>
+
+          <div class="checkbox-container">
+            <input type="checkbox" id="consent" required>
+            <label for="consent">
+              Accetto il trattamento locale dei dati sanitari (Zero-Knowledge, GDPR &amp; EHDS Compliant). Nessun dato lascia il dispositivo.
+            </label>
+          </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary">GENERA CARD &amp; QR CODE</button>
+      </form>
+      <div class="privacy-footer">🔒 Sistema offline protetto &bull; Conformità Europea garantita</div>
+    </section>
+
+
+    <!-- SEZIONE VISUALIZZAZIONE CARD (Stile Dashboard Hi-Tech) -->
+    <section id="card-section" class="card-box" style="display:none;">
+      <div class="header-flex">
+        <div class="logo-area">
+          <div class="fh-badge">FH</div>
+          <div class="brand-title">
+            <h1>FaberHealth</h1>
+            <p>NFC Emergenza</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid-info">
+        <div class="info-block">
+          <div class="display-header-top">Paziente</div>
+          <div class="display-name" id="disp-name">--</div>
+
+          <div class="display-header-top">Gruppo Sanguigno</div>
+          <div style="margin-bottom: 12px;"><span class="blood-box" id="disp-blood">--</span></div>
+
+          <p><strong>Scadenza Card:</strong> <span id="disp-expiry">--</span></p>
+          <p><strong>ID Card:</strong> <span id="disp-id" style="font-family:monospace; color:var(--primary-cyan);">--</span></p>
+          <p><strong>Patologie:</strong> <span id="disp-conditions">Nessuna indicata</span></p>
+          <p><strong>Allergie:</strong> <span id="disp-allergies">Nessuna indicata</span></p>
+          <p><strong>Farmaci:</strong> <span id="disp-medications">Nessuna indicata</span></p>
+          <p><strong>Operazioni:</strong> <span id="disp-surgeries">Nessuna indicata</span></p>
+          <p><strong>Contatto d'Emergenza (ICE):</strong> <a id="disp-ice" href="#" style="color:var(--primary-cyan); text-decoration:none; font-weight:bold;">--</a></p>
+        </div>
+
+        <div class="qr-column">
+          <div class="display-header-top">Accesso Emergenza</div>
+          <div id="qrcode-box"></div>
+          <div class="qr-label">SCAN OFFLINE</div>
+        </div>
+      </div>
+
+      <button onclick="window.print()" class="btn btn-secondary" style="margin-top: 20px;">STAMPA / SALVA PDF</button>
+      <button onclick="editData()" class="btn btn-secondary">MODIFICA DATI</button>
+      <button onclick="deleteData()" class="btn btn-danger">ELIMINA DATI DAL DISPOSITIVO (OBLIO GDPR)</button>
+    </section>
+
+  </div>
+
+  <script>
+    const form = document.getElementById('emergency-form');
+    const setupSection = document.getElementById('setup-section');
+    const cardSection = document.getElementById('card-section');
+
+    // Controllo dati salvati all'avvio
+    window.addEventListener('DOMContentLoaded', () => {
+      const saved = localStorage.getItem('faberhealth_card');
+      if (saved) {
+        const data = JSON.parse(saved);
+        renderCard(data);
+      }
+    });
+
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+
+      // Generazione automatica ID Card e Scadenza (1 anno)
+      const cardId = 'fh-nfc-' + Math.random().toString(36).substring(2, 15);
+      const today = new Date();
+      const expiryDate = new Date(today.setFullYear(today.getFullYear() + 1)).toLocaleDateString('it-IT');
+
+      const data = {
+        name: document.getElementById('name').value,
+        bloodType: document.getElementById('bloodType').value,
+        iceContact: document.getElementById('iceContact').value,
+        conditions: document.getElementById('conditions').value || 'Nessuna indicata',
+        allergies: document.getElementById('allergies').value || 'Nessuna indicata',
+        medications: document.getElementById('medications').value || 'Nessuno indicato',
+        surgeries: document.getElementById('surgeries').value || 'Nessuna indicata',
+        cardId: cardId,
+        expiry: expiryDate
+      };
+
+      localStorage.setItem('faberhealth_card', JSON.stringify(data));
+      renderCard(data);
+    });
+
+    function renderCard(data) {
+      document.getElementById('disp-name').textContent = data.name;
+      document.getElementById('disp-blood').textContent = data.bloodType;
+      document.getElementById('disp-expiry').textContent = data.expiry;
+      document.getElementById('disp-id').textContent = data.cardId;
+      document.getElementById('disp-conditions').textContent = data.conditions;
+      document.getElementById('disp-allergies').textContent = data.allergies;
+      document.getElementById('disp-medications').textContent = data.medications;
+      document.getElementById('disp-surgeries').textContent = data.surgeries;
+
+      const ice = document.getElementById('disp-ice');
+      ice.textContent = data.iceContact;
+      ice.href = `tel:${data.iceContact}`;
+
+      setupSection.style.display = 'none';
+      cardSection.style.display = 'block';
+
+      // Generazione QR Code con dati di soccorso
+      document.getElementById('qrcode-box').innerHTML = "";
+      const qrData = `FH EMERGENCY\nNome: ${data.name}\nGruppo: ${data.bloodType}\nPatol: ${data.conditions}\nAllergie: ${data.allergies}\nFarmaci: ${data.medications}\nICE: ${data.iceContact}`;
+      
+      new QRCode(document.getElementById("qrcode-box"), {
+        text: qrData,
+        width: 120,
+        height: 120
+      });
+    }
+
+    function editData() {
+      setupSection.style.display = 'block';
+      cardSection.style.display = 'none';
+    }
+
+    function deleteData() {
+      if (confirm("Vuoi eliminare permanentemente i dati sanitari da questo dispositivo in ottemperanza all'art. 17 GDPR?")) {
+        localStorage.removeItem('faberhealth_card');
+        form.reset();
+        setupSection.style.display = 'block';
+        cardSection.style.display = 'none';
+      }
+    }
+  </script>
+</body>
+</html>
